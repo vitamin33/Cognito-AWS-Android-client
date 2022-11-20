@@ -1,5 +1,7 @@
 package com.milesaway.android.screen.login
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -10,6 +12,7 @@ import androidx.compose.material.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -29,14 +32,17 @@ fun LoginPage(
     navController: NavHostController,
     viewModel: LoginViewModel
 ) {
+    val context = LocalContext.current
     LaunchedEffect(SIDE_EFFECTS_KEY) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 is LoginContract.Effect.NavigateToMain -> {
-                    navController.navigate(Routes.Dashboard.route)
+                    navController.navigate(Routes.Dashboard.route) {
+                        popUpTo = 0
+                    }
                 }
                 is LoginContract.Effect.ShowToast -> {
-                    //TODO show toast
+                    showToast(context, effect.message)
                 }
             }
         }
@@ -118,4 +124,8 @@ fun LoginPage(
             )
         )
     }
+}
+
+private fun showToast(context: Context, message: String){
+    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
 }

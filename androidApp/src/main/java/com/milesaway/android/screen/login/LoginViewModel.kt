@@ -9,6 +9,9 @@ import kotlinx.coroutines.withContext
 
 class LoginViewModel(private val client: SsoClient):
     BaseViewModel<LoginContract.Event, LoginContract.State, LoginContract.Effect>() {
+    init {
+        sendEvent(LoginContract.Event.Init)
+    }
 
     override fun handleEvent(event: LoginContract.Event) {
         when(event) {
@@ -62,7 +65,6 @@ class LoginViewModel(private val client: SsoClient):
             setState {
                 copy(isLoading = false)
             }
-            sendEffect(LoginContract.Effect.NavigateToMain)
         }
     }
 

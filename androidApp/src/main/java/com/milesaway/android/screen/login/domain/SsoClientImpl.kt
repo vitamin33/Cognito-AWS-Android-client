@@ -11,6 +11,7 @@ import com.amplifyframework.auth.cognito.AWSCognitoAuthSession
 import com.amplifyframework.auth.result.AuthSessionResult
 import com.amplifyframework.auth.result.step.AuthSignInStep
 import com.amplifyframework.core.Amplify
+import com.milesaway.android.domain.model.User
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -86,13 +87,13 @@ class SsoClientImpl constructor(
                             // Handling no session here.
                             Log.e(TAG, "Amplify no session error", Exception("Amplify no session"))
                             continuation.resume(Result.failure(Exception("Amplify no session")))
-                        }
-
-                        cognitoAuthSession.userPoolTokens.value?.accessToken?.let { token ->
-                            continuation.resume(Result.success(token))
-                        } ?: run {
-                            Log.e(TAG, "Amplify token is empty", Exception("Token is empty"))
-                            continuation.resume(Result.failure(Exception("Token is empty")))
+                        } else {
+                            cognitoAuthSession.userPoolTokens.value?.accessToken?.let { token ->
+                                continuation.resume(Result.success(token))
+                            } ?: run {
+                                Log.e(TAG, "Amplify token is empty", Exception("Token is empty"))
+                                continuation.resume(Result.failure(Exception("Token is empty")))
+                            }
                         }
                     }, { error ->
                         Log.e(TAG, "Amplify get access token exception", error)
@@ -101,6 +102,26 @@ class SsoClientImpl constructor(
             } catch (exception: Exception) {
                 Log.e(TAG, "Amplify get access token failed unexpected exception", exception)
                 continuation.resume(Result.failure(Exception(exception)))
+            }
+        }
+    }
+
+    override suspend fun fetchUserAttributes(): Result<User> {
+        return suspendCoroutine { continuation ->
+            try {
+                Amplify.Auth.fetchUserAttributes({ userAttributesList ->
+                    val user = User(
+                        username = userAttributesList.getByKey(AuthUserAttributeKey.name()) ?: "empty"
+                    )
+                    continuation.resume(Result.success(user))
+                }, { exception ->
+                    Log.e(TAG, "Fetch user Attributes exception", exception)
+                    continuation.resume(Result.failure(Exception("Fetch user Attributes exception", exception)))
+
+                })
+            } catch (exception: Exception) {
+                Log.e(TAG, "Fetch user attributes exception", exception)
+                continuation.resume(Result.failure(Exception("Fetch user attributes exception", exception)))
             }
         }
     }
