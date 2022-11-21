@@ -1,4 +1,4 @@
-package com.milesaway.android.screen.login.domain
+package com.milesaway.android.domain
 
 import com.milesaway.android.domain.model.User
 

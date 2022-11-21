@@ -6,11 +6,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.jetpackcomposedemo.Routes
 import com.milesaway.android.screen.dashboard.Dashboard
-import com.milesaway.android.screen.dashboard.DashboardViewModel
 import com.milesaway.android.screen.login.ForgotPassword
 import com.milesaway.android.screen.login.LoginPage
 import com.milesaway.android.screen.login.LoginViewModel
-import com.milesaway.android.screen.login.SignUp
+import com.milesaway.android.screen.signup.SignUp
 import org.koin.androidx.compose.getViewModel
 
 @Composable

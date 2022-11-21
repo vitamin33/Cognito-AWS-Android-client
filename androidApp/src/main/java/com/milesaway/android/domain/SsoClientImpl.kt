@@ -1,4 +1,4 @@
-package com.milesaway.android.screen.login.domain
+package com.milesaway.android.domain
 
 import android.content.Context
 import android.util.Log

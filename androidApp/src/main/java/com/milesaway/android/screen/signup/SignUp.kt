@@ -1,4 +1,4 @@
-package com.milesaway.android.screen.login
+package com.milesaway.android.screen.signup
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement

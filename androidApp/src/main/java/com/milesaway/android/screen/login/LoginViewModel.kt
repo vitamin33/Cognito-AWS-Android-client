@@ -2,7 +2,7 @@ package com.milesaway.android.screen.login
 
 import androidx.lifecycle.viewModelScope
 import com.milesaway.android.mvi.BaseViewModel
-import com.milesaway.android.screen.login.domain.SsoClient
+import com.milesaway.android.domain.SsoClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
