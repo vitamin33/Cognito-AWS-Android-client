@@ -26,6 +26,7 @@ import com.example.jetpackcomposedemo.Routes
 import com.milesaway.android.collectAsStateLifecycleAware
 import com.milesaway.android.mvi.SIDE_EFFECTS_KEY
 import com.milesaway.android.theme.Purple700
+import com.milesaway.android.utils.showToast
 
 @Composable
 fun LoginPage(
@@ -124,8 +125,4 @@ fun LoginPage(
             )
         )
     }
-}
-
-private fun showToast(context: Context, message: String){
-    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
 }

@@ -1,46 +1,138 @@
 package com.milesaway.android.screen.signup
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Button
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.jetpackcomposedemo.Routes
+import com.milesaway.android.collectAsStateLifecycleAware
 import com.milesaway.android.component.CustomTopAppBar
+import com.milesaway.android.mvi.SIDE_EFFECTS_KEY
+import com.milesaway.android.utils.showToast
+import org.koin.androidx.compose.getViewModel
 
 @Composable
 fun SignUp(navController: NavHostController) {
+    val context = LocalContext.current
+    val viewModel = getViewModel<SignUpViewModel>()
+
+    LaunchedEffect(SIDE_EFFECTS_KEY) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is SignUpContract.Effect.NavigateToFinishSignUp -> {
+                    navController.navigate(Routes.Dashboard.route) {
+                        popUpTo = 0
+                    }
+                }
+                is SignUpContract.Effect.ShowToast -> {
+                    showToast(context, effect.message)
+                }
+            }
+        }
+    }
+
+    val state: SignUpContract.State by viewModel.uiState.collectAsStateLifecycleAware()
     Box(modifier = Modifier.fillMaxSize()) {
-        ScaffoldWithTopBar(navController)
+        ScaffoldWithTopBar(navController, viewModel, state)
     }
 }
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun ScaffoldWithTopBar(navController: NavHostController) {
+fun ScaffoldWithTopBar(
+    navController: NavHostController,
+    viewModel: SignUpViewModel,
+    state: SignUpContract.State
+) {
     Scaffold(
         topBar = {
             CustomTopAppBar(navController, "Signup", true)
         }, content = {
             Column(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Sign up",
-                    fontSize = 30.sp,
-                    color = Color.Black
+
+                val username = state.enteredUsername
+                val password = state.enteredPassword
+
+                Text(text = "Sign up", style = TextStyle(fontSize = 40.sp, fontFamily = FontFamily.Cursive))
+
+                Spacer(modifier = Modifier.height(20.dp))
+                TextField(
+                    label = { Text(text = "Email") },
+                    value = username,
+                    onValueChange = { name ->
+                        viewModel.sendEvent(SignUpContract.Event.UsernameValueChanged(name))
+                    })
+
+                Spacer(modifier = Modifier.height(20.dp))
+                TextField(
+                    label = { Text(text = "Username") },
+                    value = username,
+                    onValueChange = { name ->
+                        viewModel.sendEvent(SignUpContract.Event.UsernameValueChanged(name))
+                    })
+
+                Spacer(modifier = Modifier.height(20.dp))
+                TextField(
+                    label = { Text(text = "Password") },
+                    value = password,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    onValueChange = { value ->
+                        viewModel.sendEvent(SignUpContract.Event.PasswordValueChanged(value))
+                    })
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                    Button(
+                        onClick = {
+                            viewModel.sendEvent(
+                                SignUpContract.Event.SignUpButtonClicked(
+                                    username,
+                                    password
+                                )
+                            )
+                        },
+                        shape = RoundedCornerShape(50.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                    ) {
+                        Text(text = "Sign Up")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+                ClickableText(
+                    text = AnnotatedString("Forgot password?"),
+                    onClick = { navController.navigate(Routes.ForgotPassword.route) },
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily.Default
+                    )
                 )
             }
-
         })
 }
