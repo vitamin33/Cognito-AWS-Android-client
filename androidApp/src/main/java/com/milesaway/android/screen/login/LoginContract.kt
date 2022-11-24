@@ -23,6 +23,7 @@ interface LoginContract {
 
     sealed class Effect : UiEffect {
         object NavigateToMain : Effect()
+        object NavigateToSignUp : Effect()
         data class ShowToast(val message: String) : Effect()
     }
 }

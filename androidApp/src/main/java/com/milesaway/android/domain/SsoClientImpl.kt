@@ -8,8 +8,10 @@ import com.amplifyframework.auth.AuthUserAttribute
 import com.amplifyframework.auth.AuthUserAttributeKey
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
 import com.amplifyframework.auth.cognito.AWSCognitoAuthSession
+import com.amplifyframework.auth.options.AuthSignUpOptions
 import com.amplifyframework.auth.result.AuthSessionResult
 import com.amplifyframework.auth.result.step.AuthSignInStep
+import com.amplifyframework.auth.result.step.AuthSignUpStep
 import com.amplifyframework.core.Amplify
 import com.milesaway.android.domain.model.User
 import kotlin.coroutines.resume
@@ -29,30 +31,108 @@ class SsoClientImpl constructor(
         }
     }
 
-    override suspend fun signIn(userName: String, userPassword: String): Result<Unit> {
+    override suspend fun signIn(userName: String, userPassword: String): Result<Boolean> {
         return suspendCoroutine { continuation ->
             try {
                 Amplify.Auth.signIn(userName, userPassword, { signInResult ->
                     when {
                         signInResult.isSignInComplete -> {
-                            continuation.resume(Result.success(Unit))
+                            continuation.resume(Result.success(true))
+                        }
+                        signInResult.nextStep.signInStep == AuthSignInStep.CONFIRM_SIGN_UP -> {
+                            continuation.resume(Result.success(false))
                         }
                         signInResult.nextStep.signInStep == AuthSignInStep.CONFIRM_SIGN_IN_WITH_NEW_PASSWORD -> {
                             continuation.resume(Result.failure(Exception("Confirm sign in with new password")))
                         }
                         else -> {
-                            Log.e(TAG, "SignIn", Exception("Unexpected login next step - ${signInResult.nextStep.signInStep}"))
+                            Log.e(
+                                TAG,
+                                "SignIn",
+                                Exception("Unexpected login next step - ${signInResult.nextStep.signInStep}")
+                            )
                             continuation.resume(Result.failure(Exception("Unexpected login next step - ${signInResult.nextStep.signInStep}")))
                         }
                     }
                 }, { authException ->
                     if (authException is AuthException.NotAuthorizedException) {
                         continuation.resume(Result.failure(Exception("Wrong credential exception")))
+                    } else if (authException is AuthException.UserNotConfirmedException) {
+                        continuation.resume(Result.success(false))
                     } else {
                         Log.e(TAG, "Amplify signIn auth", authException)
                         continuation.resume(Result.failure(Exception(authException)))
                     }
 
+                })
+            } catch (authException: Exception) {
+                Log.e(TAG, "Unexpected signIn exception", authException)
+                continuation.resume(Result.failure(Exception(authException)))
+            }
+        }
+    }
+
+    override suspend fun signUp(
+        username: String,
+        userEmail: String,
+        userPassword: String
+    ): Result<Boolean> {
+        return suspendCoroutine { continuation ->
+            try {
+                val options = AuthSignUpOptions.builder()
+                    .userAttribute(AuthUserAttributeKey.email(), userEmail)
+                    .build()
+                Amplify.Auth.signUp(username, userPassword, options, { result ->
+                    when {
+                        result.isSignUpComplete -> {
+                            continuation.resume(Result.success(true))
+                        }
+                        result.nextStep.signUpStep == AuthSignUpStep.CONFIRM_SIGN_UP_STEP -> {
+                            continuation.resume(Result.success(false))
+                        }
+                        else -> {
+                            Log.e(
+                                TAG,
+                                "SignUp",
+                                Exception("Unexpected sign up next step - ${result.nextStep.signUpStep}")
+                            )
+                            continuation.resume(Result.failure(Exception("Unexpected sign up next step - ${result.nextStep.signUpStep}")))
+                        }
+                    }
+                }, { authException ->
+                    Log.e(TAG, "Amplify signUp auth", authException)
+                    continuation.resume(Result.failure(Exception(authException)))
+                })
+            } catch (authException: Exception) {
+                Log.e(TAG, "Unexpected signIn exception", authException)
+                continuation.resume(Result.failure(Exception(authException)))
+            }
+        }
+    }
+
+    override suspend fun confirmSignUp(username: String, confirmCode: String): Result<Unit> {
+        return suspendCoroutine { continuation ->
+            try {
+                Amplify.Auth.confirmSignUp(username, confirmCode, { result ->
+                    when {
+                        result.isSignUpComplete -> {
+                            continuation.resume(Result.success(Unit))
+                        }
+                        result.nextStep.signUpStep == AuthSignUpStep.CONFIRM_SIGN_UP_STEP -> {
+                            continuation.resume(Result.failure(Exception("Confirm sign up")))
+                        }
+                        else -> {
+                            Log.e(
+                                TAG,
+                                "SignUp",
+                                Exception("Unexpected sign up next step - ${result.nextStep.signUpStep}")
+                            )
+                            continuation.resume(Result.failure(Exception("Unexpected sign up next step - ${result.nextStep.signUpStep}")))
+                        }
+                    }
+                }, { authException ->
+                    Log.e(TAG, "Amplify signUp auth", authException)
+                    continuation.resume(Result.failure(Exception(authException)))
                 })
             } catch (authException: Exception) {
                 Log.e(TAG, "Unexpected signIn exception", authException)
@@ -111,17 +191,32 @@ class SsoClientImpl constructor(
             try {
                 Amplify.Auth.fetchUserAttributes({ userAttributesList ->
                     val user = User(
-                        username = userAttributesList.getByKey(AuthUserAttributeKey.name()) ?: "empty"
+                        username = userAttributesList.getByKey(AuthUserAttributeKey.name())
+                            ?: "empty"
                     )
                     continuation.resume(Result.success(user))
                 }, { exception ->
                     Log.e(TAG, "Fetch user Attributes exception", exception)
-                    continuation.resume(Result.failure(Exception("Fetch user Attributes exception", exception)))
+                    continuation.resume(
+                        Result.failure(
+                            Exception(
+                                "Fetch user Attributes exception",
+                                exception
+                            )
+                        )
+                    )
 
                 })
             } catch (exception: Exception) {
                 Log.e(TAG, "Fetch user attributes exception", exception)
-                continuation.resume(Result.failure(Exception("Fetch user attributes exception", exception)))
+                continuation.resume(
+                    Result.failure(
+                        Exception(
+                            "Fetch user attributes exception",
+                            exception
+                        )
+                    )
+                )
             }
         }
     }

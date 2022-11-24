@@ -1,6 +1,7 @@
 package com.milesaway.android.screen
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -23,8 +24,12 @@ fun MainApp(){
             LoginPage(navController = navController, loginViewModel)
         }
 
-        composable(Routes.SignUp.route) {
-            SignUp(navController = navController)
+        composable(
+            "${Routes.SignUp.route}/{confirmMode}",
+            arguments = listOf(navArgument("confirmMode") { type = NavType.BoolType })
+        ) { backStackEntry ->
+            val confirmMode = backStackEntry.arguments?.getBoolean("confirmMode")
+            SignUp(navController = navController, confirmMode)
         }
 
         composable(Routes.ForgotPassword.route) { navBackStack ->

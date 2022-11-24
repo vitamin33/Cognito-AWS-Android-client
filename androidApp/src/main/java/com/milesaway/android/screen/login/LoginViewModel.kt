@@ -51,12 +51,18 @@ class LoginViewModel(private val client: SsoClient):
         viewModelScope.launch {
             setState { copy(isLoading = true) }
 
-            var result: Result<Unit>
+            var result: Result<Boolean>
             withContext(Dispatchers.IO) {
                 result = client.signIn(email, password)
             }
             if (result.isSuccess) {
-                sendEffect(LoginContract.Effect.NavigateToMain)
+                result.getOrNull()?.let { confirmed ->
+                    if (confirmed) {
+                        sendEffect(LoginContract.Effect.NavigateToMain)
+                    } else {
+                        sendEffect(LoginContract.Effect.NavigateToSignUp)
+                    }
+                }
             } else {
                 val message = result.exceptionOrNull()?.message ?: "Login error"
                 sendEffect(LoginContract.Effect.ShowToast(message))

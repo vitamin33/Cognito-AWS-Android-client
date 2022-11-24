@@ -31,15 +31,15 @@ import com.milesaway.android.utils.showToast
 import org.koin.androidx.compose.getViewModel
 
 @Composable
-fun SignUp(navController: NavHostController) {
+fun SignUp(navController: NavHostController, confirmMode: Boolean) {
     val context = LocalContext.current
     val viewModel = getViewModel<SignUpViewModel>()
 
     LaunchedEffect(SIDE_EFFECTS_KEY) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                is SignUpContract.Effect.NavigateToFinishSignUp -> {
-                    navController.navigate(Routes.Dashboard.route) {
+                is SignUpContract.Effect.NavigateToLogin -> {
+                    navController.navigate(Routes.Login.route) {
                         popUpTo = 0
                     }
                 }
@@ -67,72 +67,114 @@ fun ScaffoldWithTopBar(
         topBar = {
             CustomTopAppBar(navController, "Signup", true)
         }, content = {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
 
-                val username = state.enteredUsername
-                val password = state.enteredPassword
+            val signInComplete = state.isSignInComplete
+            if (signInComplete == null || signInComplete) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
-                Text(text = "Sign up", style = TextStyle(fontSize = 40.sp, fontFamily = FontFamily.Cursive))
+                    val username = state.enteredUsername
+                    val password = state.enteredPassword
+                    val email = state.enteredEmail
 
-                Spacer(modifier = Modifier.height(20.dp))
-                TextField(
-                    label = { Text(text = "Email") },
-                    value = username,
-                    onValueChange = { name ->
-                        viewModel.sendEvent(SignUpContract.Event.UsernameValueChanged(name))
-                    })
+                    Text(
+                        text = "Sign up",
+                        style = TextStyle(fontSize = 40.sp, fontFamily = FontFamily.Cursive)
+                    )
 
-                Spacer(modifier = Modifier.height(20.dp))
-                TextField(
-                    label = { Text(text = "Username") },
-                    value = username,
-                    onValueChange = { name ->
-                        viewModel.sendEvent(SignUpContract.Event.UsernameValueChanged(name))
-                    })
+                    Spacer(modifier = Modifier.height(20.dp))
+                    TextField(
+                        label = { Text(text = "Email") },
+                        value = email,
+                        onValueChange = { value ->
+                            viewModel.sendEvent(SignUpContract.Event.EmailValueChanged(value))
+                        })
 
-                Spacer(modifier = Modifier.height(20.dp))
-                TextField(
-                    label = { Text(text = "Password") },
-                    value = password,
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    onValueChange = { value ->
-                        viewModel.sendEvent(SignUpContract.Event.PasswordValueChanged(value))
-                    })
+                    Spacer(modifier = Modifier.height(20.dp))
+                    TextField(
+                        label = { Text(text = "Username") },
+                        value = username,
+                        onValueChange = { name ->
+                            viewModel.sendEvent(SignUpContract.Event.UsernameValueChanged(name))
+                        })
 
-                Spacer(modifier = Modifier.height(20.dp))
-                Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                    Button(
-                        onClick = {
-                            viewModel.sendEvent(
-                                SignUpContract.Event.SignUpButtonClicked(
-                                    username,
-                                    password
+                    Spacer(modifier = Modifier.height(20.dp))
+                    TextField(
+                        label = { Text(text = "Password") },
+                        value = password,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        onValueChange = { value ->
+                            viewModel.sendEvent(SignUpContract.Event.PasswordValueChanged(value))
+                        })
+
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Button(
+                            onClick = {
+                                viewModel.sendEvent(
+                                    SignUpContract.Event.SignUpButtonClicked(
+                                        username,
+                                        state.enteredEmail,
+                                        password
+                                    )
                                 )
-                            )
-                        },
-                        shape = RoundedCornerShape(50.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                    ) {
-                        Text(text = "Sign Up")
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                        ) {
+                            Text(text = "Sign Up")
+                        }
                     }
                 }
+            } else {
+                val username = state.enteredUsername
+                val confirmationCode = state.enteredConfirmationCode
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
-                Spacer(modifier = Modifier.height(20.dp))
-                ClickableText(
-                    text = AnnotatedString("Forgot password?"),
-                    onClick = { navController.navigate(Routes.ForgotPassword.route) },
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        fontFamily = FontFamily.Default
+                    Text(
+                        text = "Sign up",
+                        style = TextStyle(fontSize = 40.sp, fontFamily = FontFamily.Cursive)
                     )
-                )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+                    TextField(
+                        label = { Text(text = "Confirmation code") },
+                        value = confirmationCode,
+                        onValueChange = { name ->
+                            viewModel.sendEvent(SignUpContract.Event.ConfirmCodeValueChanged(name))
+                        })
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+                        Button(
+                            onClick = {
+                                viewModel.sendEvent(
+                                    SignUpContract.Event.ConfirmButtonClicked(
+                                        username,
+                                        confirmationCode
+                                    )
+                                )
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                        ) {
+                            Text(text = "Confirm")
+                        }
+                    }
+                }
             }
         })
 }

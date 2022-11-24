@@ -9,7 +9,9 @@ interface SignUpContract {
         data class EmailValueChanged(val email: String) : Event()
         data class UsernameValueChanged(val username: String) : Event()
         data class PasswordValueChanged(val password: String) : Event()
-        data class SignUpButtonClicked(val username: String, val password: String) : Event()
+        data class ConfirmCodeValueChanged(val code: String) : Event()
+        data class SignUpButtonClicked(val username: String, val email: String, val password: String) : Event()
+        data class ConfirmButtonClicked(val username: String, val confirmCode: String) : Event()
     }
 
     //UI view state
@@ -17,12 +19,13 @@ interface SignUpContract {
         val enteredUsername: String,
         val enteredEmail: String,
         val enteredPassword: String,
+        val enteredConfirmationCode: String,
         val isLoading: Boolean,
-        val isSignInComplete: Boolean,
+        val isSignInComplete: Boolean? = null,
     ) : UiState
 
     sealed class Effect : UiEffect {
-        object NavigateToFinishSignUp : Effect()
+        object NavigateToLogin : Effect()
         data class ShowToast(val message: String) : Effect()
     }
 }

@@ -1,7 +1,5 @@
 package com.milesaway.android.screen.login
 
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -37,8 +35,13 @@ fun LoginPage(
     LaunchedEffect(SIDE_EFFECTS_KEY) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                is LoginContract.Effect.NavigateToMain -> {
+                LoginContract.Effect.NavigateToMain -> {
                     navController.navigate(Routes.Dashboard.route) {
+                        popUpTo = 0
+                    }
+                }
+                LoginContract.Effect.NavigateToSignUp -> {
+                    navController.navigate(Routes.SignUp.route) {
                         popUpTo = 0
                     }
                 }

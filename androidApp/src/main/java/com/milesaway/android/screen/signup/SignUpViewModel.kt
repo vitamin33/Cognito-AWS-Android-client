@@ -13,7 +13,7 @@ class SignUpViewModel(private val client: SsoClient):
     override fun handleEvent(event: SignUpContract.Event) {
         when(event) {
             is SignUpContract.Event.SignUpButtonClicked -> {
-                launchSignUpUseCase(event.username, event.password)
+                launchSignUpUseCase(event.username, event.email, event.password)
             }
             is SignUpContract.Event.PasswordValueChanged -> {
                 setState { copy(enteredPassword = event.password) }
@@ -24,19 +24,51 @@ class SignUpViewModel(private val client: SsoClient):
             is SignUpContract.Event.EmailValueChanged -> {
                 setState { copy(enteredEmail = event.email) }
             }
+            is SignUpContract.Event.ConfirmButtonClicked -> {
+                launchConfirmUseCase(event.username, event.confirmCode)
+            }
+            is SignUpContract.Event.ConfirmCodeValueChanged -> {
+                setState { copy(enteredConfirmationCode = event.code) }
+            }
         }
     }
 
-    private fun launchSignUpUseCase(email: String, password: String) {
+    private fun launchConfirmUseCase(username: String, confirmCode: String) {
         viewModelScope.launch {
             setState { copy(isLoading = true) }
 
             var result: Result<Unit>
             withContext(Dispatchers.IO) {
-                result = client.signIn(email, password)
+                result = client.confirmSignUp(username, confirmCode)
             }
             if (result.isSuccess) {
-                sendEffect(SignUpContract.Effect.NavigateToFinishSignUp)
+                sendEffect(SignUpContract.Effect.NavigateToLogin)
+            } else {
+                val message = result.exceptionOrNull()?.message ?: "Confirmation error"
+                sendEffect(SignUpContract.Effect.ShowToast(message))
+            }
+
+            setState {
+                copy(isLoading = false)
+            }
+        }
+    }
+
+    private fun launchSignUpUseCase(username: String, email: String, password: String) {
+        viewModelScope.launch {
+            setState { copy(isLoading = true) }
+
+            var result: Result<Boolean>
+            withContext(Dispatchers.IO) {
+                result = client.signUp(username, email, password)
+            }
+            if (result.isSuccess) {
+                result.getOrNull()?.let { signInComplete ->
+                    setState { copy(isSignInComplete = signInComplete) }
+                    if (signInComplete) {
+                        sendEffect(SignUpContract.Effect.NavigateToLogin)
+                    }
+                }
             } else {
                 val message = result.exceptionOrNull()?.message ?: "Login error"
                 sendEffect(SignUpContract.Effect.ShowToast(message))
@@ -53,8 +85,9 @@ class SignUpViewModel(private val client: SsoClient):
             "",
             "",
             "",
+            "",
             isLoading = false,
-            isSignInComplete = false
+            isSignInComplete = null
         )
     }
 
