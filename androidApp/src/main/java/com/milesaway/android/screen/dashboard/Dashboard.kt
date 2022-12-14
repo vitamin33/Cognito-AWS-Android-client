@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.jetpackcomposedemo.Routes
+import com.milesaway.android.Routes
 import com.milesaway.android.collectAsStateLifecycleAware
 import com.milesaway.android.component.CustomTopAppBar
 import com.milesaway.android.mvi.SIDE_EFFECTS_KEY

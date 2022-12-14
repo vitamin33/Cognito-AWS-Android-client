@@ -1,5 +1,6 @@
 package com.milesaway.android.screen.signup
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.milesaway.android.mvi.BaseViewModel
 import com.milesaway.android.domain.SsoClient
@@ -7,11 +8,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class SignUpViewModel(private val client: SsoClient):
+class SignUpViewModel(
+    private val signInComplete: Boolean?,
+    private val client: SsoClient
+) :
     BaseViewModel<SignUpContract.Event, SignUpContract.State, SignUpContract.Effect>() {
 
+    init {
+        Log.d(TAG, "SignUpViewModel, signInComplete: $signInComplete")
+
+        setState { copy(isSignInComplete = signInComplete) }
+    }
+
     override fun handleEvent(event: SignUpContract.Event) {
-        when(event) {
+        when (event) {
             is SignUpContract.Event.SignUpButtonClicked -> {
                 launchSignUpUseCase(event.username, event.email, event.password)
             }
@@ -87,7 +97,7 @@ class SignUpViewModel(private val client: SsoClient):
             "",
             "",
             isLoading = false,
-            isSignInComplete = null
+            isSignInComplete = signInComplete
         )
     }
 

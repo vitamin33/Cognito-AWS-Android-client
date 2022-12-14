@@ -5,7 +5,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.jetpackcomposedemo.Routes
+import androidx.navigation.navArgument
+import com.milesaway.android.Routes
 import com.milesaway.android.screen.dashboard.Dashboard
 import com.milesaway.android.screen.login.ForgotPassword
 import com.milesaway.android.screen.login.LoginPage
@@ -25,11 +26,11 @@ fun MainApp(){
         }
 
         composable(
-            "${Routes.SignUp.route}/{confirmMode}",
-            arguments = listOf(navArgument("confirmMode") { type = NavType.BoolType })
+            "${Routes.SignUp.route}/{signInComplete}",
+            arguments = listOf(navArgument("signInComplete") { type = NavType.BoolType })
         ) { backStackEntry ->
-            val confirmMode = backStackEntry.arguments?.getBoolean("confirmMode")
-            SignUp(navController = navController, confirmMode)
+            val signInComplete = backStackEntry.arguments?.getBoolean("signInComplete")
+            SignUp(navController = navController, signInComplete)
         }
 
         composable(Routes.ForgotPassword.route) { navBackStack ->

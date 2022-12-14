@@ -20,7 +20,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.jetpackcomposedemo.Routes
+import com.milesaway.android.Routes
+import com.milesaway.android.addSignInComplete
 import com.milesaway.android.collectAsStateLifecycleAware
 import com.milesaway.android.mvi.SIDE_EFFECTS_KEY
 import com.milesaway.android.theme.Purple700
@@ -41,7 +42,10 @@ fun LoginPage(
                     }
                 }
                 LoginContract.Effect.NavigateToSignUp -> {
-                    navController.navigate(Routes.SignUp.route) {
+                    navController.navigate(
+                        Routes.SignUp.route
+                            .addSignInComplete(false)
+                    ) {
                         popUpTo = 0
                     }
                 }

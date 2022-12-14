@@ -3,7 +3,6 @@ package com.milesaway.android.screen.signup
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Scaffold
@@ -15,7 +14,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
@@ -23,17 +21,20 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.jetpackcomposedemo.Routes
+import com.milesaway.android.Routes
 import com.milesaway.android.collectAsStateLifecycleAware
 import com.milesaway.android.component.CustomTopAppBar
 import com.milesaway.android.mvi.SIDE_EFFECTS_KEY
 import com.milesaway.android.utils.showToast
 import org.koin.androidx.compose.getViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
-fun SignUp(navController: NavHostController, confirmMode: Boolean) {
+fun SignUp(navController: NavHostController, signInComplete: Boolean?) {
     val context = LocalContext.current
-    val viewModel = getViewModel<SignUpViewModel>()
+    val viewModel = getViewModel<SignUpViewModel>(
+        parameters = { parametersOf(signInComplete) }
+    )
 
     LaunchedEffect(SIDE_EFFECTS_KEY) {
         viewModel.effects.collect { effect ->
@@ -147,12 +148,30 @@ fun ScaffoldWithTopBar(
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
-                    TextField(
-                        label = { Text(text = "Confirmation code") },
-                        value = confirmationCode,
-                        onValueChange = { name ->
-                            viewModel.sendEvent(SignUpContract.Event.ConfirmCodeValueChanged(name))
-                        })
+                    Row {
+                        TextField(
+                            label = { Text(text = "Confirmation code") },
+                            value = confirmationCode,
+                            onValueChange = { name ->
+                                viewModel.sendEvent(SignUpContract.Event.ConfirmCodeValueChanged(name))
+                            })
+                        Button(
+                            onClick = {
+                                viewModel.sendEvent(
+                                    SignUpContract.Event.ConfirmButtonClicked(
+                                        username,
+                                        confirmationCode
+                                    )
+                                )
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                        ) {
+                            Text(text = "Confirm")
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(20.dp))
 

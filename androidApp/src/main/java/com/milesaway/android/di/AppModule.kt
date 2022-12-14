@@ -12,6 +12,11 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 val appModule = module {
     single<SsoClient> { SsoClientImpl(androidContext()) }
     viewModel { LoginViewModel(get()) }
-    viewModel { SignUpViewModel(get()) }
+    viewModel { parameters ->
+        SignUpViewModel(
+            signInComplete = parameters.get(),
+            get()
+        )
+    }
     viewModel { DashboardViewModel(get()) }
 }
