@@ -1,4 +1,4 @@
-package com.milesaway.android.domain
+package com.milesaway.android.data
 
 import android.content.Context
 import android.util.Log
@@ -13,6 +13,7 @@ import com.amplifyframework.auth.result.AuthSessionResult
 import com.amplifyframework.auth.result.step.AuthSignInStep
 import com.amplifyframework.auth.result.step.AuthSignUpStep
 import com.amplifyframework.core.Amplify
+import com.milesaway.android.domain.SsoClient
 import com.milesaway.android.domain.model.User
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -114,6 +115,37 @@ class SsoClientImpl constructor(
         return suspendCoroutine { continuation ->
             try {
                 Amplify.Auth.confirmSignUp(username, confirmCode, { result ->
+                    when {
+                        result.isSignUpComplete -> {
+                            continuation.resume(Result.success(Unit))
+                        }
+                        result.nextStep.signUpStep == AuthSignUpStep.CONFIRM_SIGN_UP_STEP -> {
+                            continuation.resume(Result.failure(Exception("Confirm sign up")))
+                        }
+                        else -> {
+                            Log.e(
+                                TAG,
+                                "SignUp",
+                                Exception("Unexpected sign up next step - ${result.nextStep.signUpStep}")
+                            )
+                            continuation.resume(Result.failure(Exception("Unexpected sign up next step - ${result.nextStep.signUpStep}")))
+                        }
+                    }
+                }, { authException ->
+                    Log.e(TAG, "Amplify signUp auth", authException)
+                    continuation.resume(Result.failure(Exception(authException)))
+                })
+            } catch (authException: Exception) {
+                Log.e(TAG, "Unexpected signIn exception", authException)
+                continuation.resume(Result.failure(Exception(authException)))
+            }
+        }
+    }
+
+    override suspend fun resendConfirmSignUpCode(username: String): Result<Unit> {
+        return suspendCoroutine { continuation ->
+            try {
+                Amplify.Auth.resendSignUpCode(username, { result ->
                     when {
                         result.isSignUpComplete -> {
                             continuation.resume(Result.success(Unit))
