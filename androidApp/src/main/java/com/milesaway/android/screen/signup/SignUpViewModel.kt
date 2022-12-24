@@ -2,22 +2,30 @@ package com.milesaway.android.screen.signup
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.milesaway.android.domain.MilesAwayCache
 import com.milesaway.android.mvi.BaseViewModel
 import com.milesaway.android.domain.SsoClient
+import com.milesaway.android.screen.signup.SignUpContract.SignInState.Companion.createState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 class SignUpViewModel(
     private val signInComplete: Boolean?,
-    private val client: SsoClient
+    private val client: SsoClient,
+    private val milesAwayCache: MilesAwayCache
 ) :
     BaseViewModel<SignUpContract.Event, SignUpContract.State, SignUpContract.Effect>() {
 
     init {
         Log.d(TAG, "SignUpViewModel, signInComplete: $signInComplete")
 
-        setState { copy(isSignInComplete = signInComplete) }
+        setState {
+            copy(
+                signInState = createState(signInComplete)
+            )
+        }
     }
 
     override fun handleEvent(event: SignUpContract.Event) {
@@ -39,6 +47,9 @@ class SignUpViewModel(
             }
             is SignUpContract.Event.ConfirmCodeValueChanged -> {
                 setState { copy(enteredConfirmationCode = event.code) }
+            }
+            is SignUpContract.Event.ResendSignupButtonClicked -> {
+                launchResendSignUpCodeUseCase()
             }
         }
     }
@@ -64,6 +75,32 @@ class SignUpViewModel(
         }
     }
 
+    private fun launchResendSignUpCodeUseCase() {
+        viewModelScope.launch {
+            setState { copy(resendButtonPressed = true) }
+
+            val username = milesAwayCache.getUsername()
+            if (username != null)  {
+                var result: Result<Unit>
+                withContext(Dispatchers.IO) {
+                    result = client.resendConfirmSignUpCode(username)
+                }
+                if (result.isSuccess) {
+                    setState { copy(resendButtonPressed = false) }
+                } else {
+                    val message = result.exceptionOrNull()?.message ?: "Resend sign up code error"
+                    sendEffect(SignUpContract.Effect.ShowToast(message))
+                }
+            } else {
+                Timber.e("Username shouldn't be null on sending confirm code")
+            }
+
+            setState {
+                copy(resendButtonPressed = false)
+            }
+        }
+    }
+
     private fun launchSignUpUseCase(username: String, email: String, password: String) {
         viewModelScope.launch {
             setState { copy(isLoading = true) }
@@ -74,7 +111,7 @@ class SignUpViewModel(
             }
             if (result.isSuccess) {
                 result.getOrNull()?.let { signInComplete ->
-                    setState { copy(isSignInComplete = signInComplete) }
+                    setState { copy(signInState = createState(signInComplete)) }
                     if (signInComplete) {
                         sendEffect(SignUpContract.Effect.NavigateToLogin)
                     }
@@ -97,7 +134,8 @@ class SignUpViewModel(
             "",
             "",
             isLoading = false,
-            isSignInComplete = signInComplete
+            signInState = SignUpContract.SignInState.Initial,
+            resendButtonPressed = false
         )
     }
 

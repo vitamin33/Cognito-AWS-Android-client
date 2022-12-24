@@ -12,6 +12,7 @@ interface SignUpContract {
         data class ConfirmCodeValueChanged(val code: String) : Event()
         data class SignUpButtonClicked(val username: String, val email: String, val password: String) : Event()
         data class ConfirmButtonClicked(val username: String, val confirmCode: String) : Event()
+        object ResendSignupButtonClicked : Event()
     }
 
     //UI view state
@@ -21,11 +22,30 @@ interface SignUpContract {
         val enteredPassword: String,
         val enteredConfirmationCode: String,
         val isLoading: Boolean,
-        val isSignInComplete: Boolean? = null,
+        val signInState: SignInState,
+        val resendButtonPressed: Boolean
     ) : UiState
 
     sealed class Effect : UiEffect {
         object NavigateToLogin : Effect()
         data class ShowToast(val message: String) : Effect()
+    }
+
+    sealed interface SignInState {
+        object Initial : SignInState
+        object SignInComplete : SignInState
+        object SignInConfirmation : SignInState
+
+        companion object {
+            fun createState(isSignInComplete: Boolean?) : SignInState {
+                return if (isSignInComplete == null) {
+                    Initial
+                } else if (isSignInComplete) {
+                    SignInComplete
+                } else {
+                    SignInConfirmation
+                }
+            }
+        }
     }
 }

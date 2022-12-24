@@ -12,6 +12,8 @@ interface SsoClient {
 
     suspend fun confirmSignUp(username: String, confirmCode: String): Result<Unit>
 
+    suspend fun resendConfirmSignUpCode(username: String): Result<Unit>
+
     suspend fun updatePassword(oldPassword: String, newPassword: String): Result<Unit>
 
     suspend fun getAccessToken(): Result<String>

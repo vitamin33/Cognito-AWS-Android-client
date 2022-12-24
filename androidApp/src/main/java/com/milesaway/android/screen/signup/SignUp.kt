@@ -68,132 +68,142 @@ fun ScaffoldWithTopBar(
         topBar = {
             CustomTopAppBar(navController, "Signup", true)
         }, content = {
-
-            val signInComplete = state.isSignInComplete
-            if (signInComplete == null || signInComplete) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    val username = state.enteredUsername
-                    val password = state.enteredPassword
-                    val email = state.enteredEmail
-
-                    Text(
-                        text = "Sign up",
-                        style = TextStyle(fontSize = 40.sp, fontFamily = FontFamily.Cursive)
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-                    TextField(
-                        label = { Text(text = "Email") },
-                        value = email,
-                        onValueChange = { value ->
-                            viewModel.sendEvent(SignUpContract.Event.EmailValueChanged(value))
-                        })
-
-                    Spacer(modifier = Modifier.height(20.dp))
-                    TextField(
-                        label = { Text(text = "Username") },
-                        value = username,
-                        onValueChange = { name ->
-                            viewModel.sendEvent(SignUpContract.Event.UsernameValueChanged(name))
-                        })
-
-                    Spacer(modifier = Modifier.height(20.dp))
-                    TextField(
-                        label = { Text(text = "Password") },
-                        value = password,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        onValueChange = { value ->
-                            viewModel.sendEvent(SignUpContract.Event.PasswordValueChanged(value))
-                        })
-
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                        Button(
-                            onClick = {
-                                viewModel.sendEvent(
-                                    SignUpContract.Event.SignUpButtonClicked(
-                                        username,
-                                        state.enteredEmail,
-                                        password
-                                    )
-                                )
-                            },
-                            shape = RoundedCornerShape(50.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp)
-                        ) {
-                            Text(text = "Sign Up")
-                        }
-                    }
-                }
-            } else {
-                val username = state.enteredUsername
-                val confirmationCode = state.enteredConfirmationCode
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    Text(
-                        text = "Sign up",
-                        style = TextStyle(fontSize = 40.sp, fontFamily = FontFamily.Cursive)
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Row {
-                        TextField(
-                            label = { Text(text = "Confirmation code") },
-                            value = confirmationCode,
-                            onValueChange = { name ->
-                                viewModel.sendEvent(SignUpContract.Event.ConfirmCodeValueChanged(name))
-                            })
-                        Button(
-                            onClick = {
-                                viewModel.sendEvent(
-                                    SignUpContract.Event.ConfirmButtonClicked(
-                                        username,
-                                        confirmationCode
-                                    )
-                                )
-                            },
-                            shape = RoundedCornerShape(50.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp)
-                        ) {
-                            Text(text = "Confirm")
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-                        Button(
-                            onClick = {
-                                viewModel.sendEvent(
-                                    SignUpContract.Event.ConfirmButtonClicked(
-                                        username,
-                                        confirmationCode
-                                    )
-                                )
-                            },
-                            shape = RoundedCornerShape(50.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp)
-                        ) {
-                            Text(text = "Confirm")
-                        }
-                    }
-                }
+            when (state.signInState) {
+                SignUpContract.SignInState.Initial -> SignInCompleteView(viewModel, state)
+                SignUpContract.SignInState.SignInComplete -> SignInCompleteView(viewModel, state)
+                SignUpContract.SignInState.SignInConfirmation -> SignInConfirmationView(
+                    viewModel,
+                    state
+                )
             }
         })
+}
+
+
+@Composable
+fun SignInCompleteView(viewModel: SignUpViewModel, state: SignUpContract.State) {
+    Column(
+        modifier = Modifier.padding(20.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        val username = state.enteredUsername
+        val password = state.enteredPassword
+        val email = state.enteredEmail
+
+        Text(
+            text = "Sign up",
+            style = TextStyle(fontSize = 40.sp, fontFamily = FontFamily.Cursive)
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+        TextField(
+            label = { Text(text = "Email") },
+            value = email,
+            onValueChange = { value ->
+                viewModel.sendEvent(SignUpContract.Event.EmailValueChanged(value))
+            })
+
+        Spacer(modifier = Modifier.height(20.dp))
+        TextField(
+            label = { Text(text = "Username") },
+            value = username,
+            onValueChange = { name ->
+                viewModel.sendEvent(SignUpContract.Event.UsernameValueChanged(name))
+            })
+
+        Spacer(modifier = Modifier.height(20.dp))
+        TextField(
+            label = { Text(text = "Password") },
+            value = password,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            onValueChange = { value ->
+                viewModel.sendEvent(SignUpContract.Event.PasswordValueChanged(value))
+            })
+
+        Spacer(modifier = Modifier.height(20.dp))
+        Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+            Button(
+                onClick = {
+                    viewModel.sendEvent(
+                        SignUpContract.Event.SignUpButtonClicked(
+                            username,
+                            state.enteredEmail,
+                            password
+                        )
+                    )
+                },
+                shape = RoundedCornerShape(50.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Text(text = "Sign Up")
+            }
+        }
+    }
+}
+
+@Composable
+fun SignInConfirmationView(viewModel: SignUpViewModel, state: SignUpContract.State) {
+    val username = state.enteredUsername
+    val confirmationCode = state.enteredConfirmationCode
+    Column(
+        modifier = Modifier.padding(20.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Text(
+            text = "Sign up",
+            style = TextStyle(fontSize = 40.sp, fontFamily = FontFamily.Cursive)
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+        Row {
+            TextField(
+                label = { Text(text = "Confirmation code") },
+                value = confirmationCode,
+                onValueChange = { name ->
+                    viewModel.sendEvent(SignUpContract.Event.ConfirmCodeValueChanged(name))
+                })
+            Button(
+                onClick = {
+                    viewModel.sendEvent(
+                        SignUpContract.Event.ResendSignupButtonClicked
+                    )
+                },
+                shape = RoundedCornerShape(50.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                enabled = !state.resendButtonPressed
+            ) {
+                Text(text = "Send")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
+            Button(
+                onClick = {
+                    viewModel.sendEvent(
+                        SignUpContract.Event.ConfirmButtonClicked(
+                            username,
+                            confirmationCode
+                        )
+                    )
+                },
+                shape = RoundedCornerShape(50.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Text(text = "Confirm")
+            }
+        }
+    }
 }
