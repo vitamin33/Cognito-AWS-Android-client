@@ -1,13 +1,17 @@
 package com.milesaway.android.screen.login
 
 import androidx.lifecycle.viewModelScope
+import com.milesaway.android.domain.MilesAwayCache
 import com.milesaway.android.mvi.BaseViewModel
 import com.milesaway.android.domain.SsoClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class LoginViewModel(private val client: SsoClient):
+class LoginViewModel(
+    private val client: SsoClient,
+    private val milesAwayCache: MilesAwayCache
+    ):
     BaseViewModel<LoginContract.Event, LoginContract.State, LoginContract.Effect>() {
     init {
         sendEvent(LoginContract.Event.Init)
@@ -47,13 +51,16 @@ class LoginViewModel(private val client: SsoClient):
         }
     }
 
-    private fun launchLoginUseCase(email: String, password: String) {
+    private fun launchLoginUseCase(username: String, password: String) {
         viewModelScope.launch {
             setState { copy(isLoading = true) }
 
             var result: Result<Boolean>
             withContext(Dispatchers.IO) {
-                result = client.signIn(email, password)
+                result = client.signIn(username, password)
+                if (result.isSuccess) {
+                    milesAwayCache.saveUsername(username)
+                }
             }
             if (result.isSuccess) {
                 result.getOrNull()?.let { confirmed ->

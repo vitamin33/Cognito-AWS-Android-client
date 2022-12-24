@@ -13,6 +13,7 @@ object Versions {
     const val coilCompose = "2.2.2"
     const val amplify = "1.37.6"
     const val amplifyKotlin = "0.21.6"
+    const val timber = "5.0.1"
 
     const val junit = "4.13"
 }
