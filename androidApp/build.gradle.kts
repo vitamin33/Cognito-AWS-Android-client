@@ -42,6 +42,8 @@ dependencies {
     implementation("com.google.android.material:material:1.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
     implementation("androidx.activity:activity-compose:1.6.1")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("com.jakewharton.timber:timber:${Constants.Versions.timber}")
     implementation(Constants.Deps.amplifyAuth)
     implementation(Constants.Deps.amplifyCore)
     implementation(coroutinesCore)
