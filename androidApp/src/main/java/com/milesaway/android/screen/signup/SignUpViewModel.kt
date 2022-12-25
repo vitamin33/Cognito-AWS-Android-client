@@ -43,7 +43,7 @@ class SignUpViewModel(
                 setState { copy(enteredEmail = event.email) }
             }
             is SignUpContract.Event.ConfirmButtonClicked -> {
-                launchConfirmUseCase(event.username, event.confirmCode)
+                launchConfirmUseCase(event.confirmCode)
             }
             is SignUpContract.Event.ConfirmCodeValueChanged -> {
                 setState { copy(enteredConfirmationCode = event.code) }
@@ -54,19 +54,24 @@ class SignUpViewModel(
         }
     }
 
-    private fun launchConfirmUseCase(username: String, confirmCode: String) {
+    private fun launchConfirmUseCase(confirmCode: String) {
         viewModelScope.launch {
             setState { copy(isLoading = true) }
 
-            var result: Result<Unit>
-            withContext(Dispatchers.IO) {
-                result = client.confirmSignUp(username, confirmCode)
-            }
-            if (result.isSuccess) {
-                sendEffect(SignUpContract.Effect.NavigateToLogin)
+            val username = milesAwayCache.getUsername()
+            if (username != null)  {
+                var result: Result<Unit>
+                withContext(Dispatchers.IO) {
+                    result = client.confirmSignUp(username, confirmCode)
+                }
+                if (result.isSuccess) {
+                    sendEffect(SignUpContract.Effect.NavigateToLogin)
+                } else {
+                    val message = result.exceptionOrNull()?.message ?: "Confirmation error"
+                    sendEffect(SignUpContract.Effect.ShowToast(message))
+                }
             } else {
-                val message = result.exceptionOrNull()?.message ?: "Confirmation error"
-                sendEffect(SignUpContract.Effect.ShowToast(message))
+                Timber.e("Username shouldn't be null on sending confirm code")
             }
 
             setState {

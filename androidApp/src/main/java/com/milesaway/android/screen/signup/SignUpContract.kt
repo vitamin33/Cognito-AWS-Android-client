@@ -11,7 +11,7 @@ interface SignUpContract {
         data class PasswordValueChanged(val password: String) : Event()
         data class ConfirmCodeValueChanged(val code: String) : Event()
         data class SignUpButtonClicked(val username: String, val email: String, val password: String) : Event()
-        data class ConfirmButtonClicked(val username: String, val confirmCode: String) : Event()
+        data class ConfirmButtonClicked(val confirmCode: String) : Event()
         object ResendSignupButtonClicked : Event()
     }
 

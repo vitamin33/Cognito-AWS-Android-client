@@ -192,7 +192,6 @@ fun SignInConfirmationView(viewModel: SignUpViewModel, state: SignUpContract.Sta
                 onClick = {
                     viewModel.sendEvent(
                         SignUpContract.Event.ConfirmButtonClicked(
-                            username,
                             confirmationCode
                         )
                     )

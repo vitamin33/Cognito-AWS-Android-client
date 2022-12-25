@@ -26,10 +26,12 @@ fun MainApp(){
         }
 
         composable(
-            "${Routes.SignUp.route}/{signInComplete}",
+            "${Routes.SignUp.route}?signInComplete={signInComplete}",
             arguments = listOf(
-                navArgument("signInComplete") { type = NavType.BoolType },
-                navArgument("username") { type = NavType.StringType }
+                navArgument("signInComplete") {
+                    type = NavType.BoolType
+                    defaultValue = null
+                }
             )
         ) { backStackEntry ->
             val signInComplete = backStackEntry.arguments?.getBoolean("signInComplete")

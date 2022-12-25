@@ -64,7 +64,11 @@ fun LoginPage(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(20.dp),
-            onClick = { navController.navigate(Routes.SignUp.route) },
+            onClick = {
+                navController.navigate(
+                    Routes.SignUp.route
+                )
+            },
             style = TextStyle(
                 fontSize = 14.sp,
                 fontFamily = FontFamily.Default,
