@@ -12,7 +12,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class SignUpViewModel(
-    private val signInComplete: Boolean?,
+    private val signInComplete: Int,
     private val client: SsoClient,
     private val milesAwayCache: MilesAwayCache
 ) :
@@ -117,6 +117,7 @@ class SignUpViewModel(
             if (result.isSuccess) {
                 result.getOrNull()?.let { signInComplete ->
                     setState { copy(signInState = createState(signInComplete)) }
+                    milesAwayCache.saveUsername(username)
                     if (signInComplete) {
                         sendEffect(SignUpContract.Effect.NavigateToLogin)
                     }

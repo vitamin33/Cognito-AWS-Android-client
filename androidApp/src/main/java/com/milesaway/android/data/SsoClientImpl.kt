@@ -85,11 +85,11 @@ class SsoClientImpl constructor(
                     .build()
                 Amplify.Auth.signUp(username, userPassword, options, { result ->
                     when {
-                        result.isSignUpComplete -> {
-                            continuation.resume(Result.success(true))
-                        }
                         result.nextStep.signUpStep == AuthSignUpStep.CONFIRM_SIGN_UP_STEP -> {
                             continuation.resume(Result.success(false))
+                        }
+                        result.isSignUpComplete -> {
+                            continuation.resume(Result.success(true))
                         }
                         else -> {
                             Log.e(

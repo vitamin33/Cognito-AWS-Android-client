@@ -30,7 +30,7 @@ import org.koin.androidx.compose.getViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
-fun SignUp(navController: NavHostController, signInComplete: Boolean?) {
+fun SignUp(navController: NavHostController, signInComplete: Int) {
     val context = LocalContext.current
     val viewModel = getViewModel<SignUpViewModel>(
         parameters = { parametersOf(signInComplete) }

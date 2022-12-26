@@ -46,6 +46,20 @@ interface SignUpContract {
                     SignInConfirmation
                 }
             }
+
+            fun createState(isSignInComplete: Int) : SignInState {
+                return when (isSignInComplete) {
+                    -1 -> {
+                        Initial
+                    }
+                    1 -> {
+                        SignInComplete
+                    }
+                    else -> {
+                        SignInConfirmation
+                    }
+                }
+            }
         }
     }
 }

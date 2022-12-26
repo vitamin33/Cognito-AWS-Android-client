@@ -29,12 +29,12 @@ fun MainApp(){
             "${Routes.SignUp.route}?signInComplete={signInComplete}",
             arguments = listOf(
                 navArgument("signInComplete") {
-                    type = NavType.BoolType
-                    defaultValue = null
+                    type = NavType.IntType
+                    defaultValue = -1
                 }
             )
         ) { backStackEntry ->
-            val signInComplete = backStackEntry.arguments?.getBoolean("signInComplete")
+            val signInComplete = backStackEntry.arguments?.getInt("signInComplete") ?: -1
             SignUp(navController = navController, signInComplete)
         }
 
